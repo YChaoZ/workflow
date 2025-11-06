@@ -10,6 +10,7 @@ interface UserState {
   deptId: number | null
   position: string
   roles: string[]
+  permissions: string[]
 }
 
 export const useUserStore = defineStore('user', {
@@ -20,7 +21,8 @@ export const useUserStore = defineStore('user', {
     realName: localStorage.getItem('realName') || '',
     deptId: null,
     position: '',
-    roles: []
+    roles: [],
+    permissions: []
   }),
   
   getters: {
@@ -75,6 +77,7 @@ export const useUserStore = defineStore('user', {
         this.deptId = null
         this.position = ''
         this.roles = []
+        this.permissions = []
         
         // 清除 localStorage
         localStorage.removeItem('token')
@@ -92,6 +95,7 @@ export const useUserStore = defineStore('user', {
         this.username = response.data.username
         this.realName = response.data.realName || ''
         this.roles = response.data.roles || []
+        this.permissions = response.data.permissions || []
         return response.data
       } catch (error) {
         console.error('获取用户信息失败:', error)
@@ -117,6 +121,7 @@ export const useUserStore = defineStore('user', {
       if (userInfo.deptId !== undefined) this.deptId = userInfo.deptId
       if (userInfo.position) this.position = userInfo.position
       if (userInfo.roles) this.roles = userInfo.roles
+      if (userInfo.permissions) this.permissions = userInfo.permissions
     }
   }
 })

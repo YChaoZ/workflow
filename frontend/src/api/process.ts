@@ -98,3 +98,10 @@ export const processApi = {
   }
 }
 
+/**
+ * 根据ID获取流程实例（兼容旧API）
+ */
+export function getProcessInstanceById(instanceId: string): Promise<{ data: ProcessInstance }> {
+  return processApi.getProcessInstance(instanceId)
+}
+

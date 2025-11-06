@@ -35,7 +35,7 @@
         
         <!-- Database -->
         <mysql.version>8.0.33</mysql.version>
-        <mybatis-plus.version>3.5.10</mybatis-plus.version>
+        <mybatis-plus.version>3.5.5</mybatis-plus.version>
         <druid.version>1.2.23</druid.version>
         
         <!-- Tools -->
@@ -45,6 +45,9 @@
         
         <!-- JWT -->
         <jjwt.version>0.12.3</jjwt.version>
+        
+        <!-- Redis -->
+        <redisson.version>3.25.0</redisson.version>
     </properties>
 
     <dependencies>
@@ -60,6 +63,21 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
+        
+        <!-- Spring Boot Data Redis -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        
+        <!-- Redisson (暂时注释，使用Lettuce) -->
+        <!--
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson-spring-boot-starter</artifactId>
+            <version>${redisson.version}</version>
+        </dependency>
+        -->
 
         <!-- Spring Boot Data Redis -->
         <dependency>
@@ -112,10 +130,10 @@
             <version>${mysql.version}</version>
         </dependency>
 
-        <!-- MyBatis Plus -->
+        <!-- MyBatis Plus for Spring Boot 3 -->
         <dependency>
             <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
             <version>${mybatis-plus.version}</version>
         </dependency>
 

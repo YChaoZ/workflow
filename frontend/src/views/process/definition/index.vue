@@ -39,7 +39,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="350" fixed="right" align="center">
+        <el-table-column label="操作" width="450" fixed="right" align="center">
           <template #default="{ row }">
             <el-button
               link
@@ -56,6 +56,20 @@
               @click="handleEdit(row)"
             >
               编辑
+            </el-button>
+            <el-button
+              link
+              type="primary"
+              @click="handleBindForm(row)"
+            >
+              绑定表单
+            </el-button>
+            <el-button
+              link
+              type="success"
+              @click="handleStartFromDefinition(row)"
+            >
+              启动
             </el-button>
             <el-button
               v-if="row.suspended"
@@ -160,6 +174,51 @@
         <img v-if="diagramUrl" :src="diagramUrl" alt="流程图" />
       </div>
     </el-dialog>
+
+    <!-- 绑定表单对话框 -->
+    <el-dialog
+      v-model="bindFormDialogVisible"
+      title="绑定表单"
+      width="600px"
+      @close="handleBindFormDialogClose"
+    >
+      <el-form :model="bindFormData" label-width="120px">
+        <el-form-item label="流程定义">
+          <el-input v-model="currentProcessKey" disabled />
+        </el-form-item>
+        <el-form-item label="绑定类型">
+          <el-radio-group v-model="bindFormData.bindType">
+            <el-radio value="global">全局表单（流程启动时）</el-radio>
+            <el-radio value="node">节点表单（任务办理时）</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="节点ID" v-if="bindFormData.bindType === 'node'">
+          <el-input v-model="bindFormData.nodeId" placeholder="请输入节点ID（如：UserTask_1）" />
+        </el-form-item>
+        <el-form-item label="选择表单">
+          <el-select v-model="bindFormData.formKey" placeholder="请选择表单" style="width: 100%">
+            <el-option
+              v-for="form in availableForms"
+              :key="form.formKey"
+              :label="`${form.formName} (${form.formKey})`"
+              :value="form.formKey"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="表单版本">
+          <el-input-number v-model="bindFormData.formVersion" :min="1" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="是否必填">
+          <el-switch v-model="bindFormData.isRequired" :active-value="1" :inactive-value="0" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="bindFormDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleBindFormConfirm" :loading="bindingForm">
+          确认绑定
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -191,6 +250,7 @@ import {
   type ProcessDefinitionQuery,
   type DeployProcessRequest
 } from '@/api/definition'
+import { formApi, processFormApi } from '@/api/form'
 
 const router = useRouter()
 
@@ -236,6 +296,19 @@ const diagramDialogVisible = ref(false)
 const diagramLoading = ref(false)
 const diagramUrl = ref('')
 
+// 绑定表单对话框
+const bindFormDialogVisible = ref(false)
+const bindingForm = ref(false)
+const currentProcessKey = ref('')
+const availableForms = ref<any[]>([])
+const bindFormData = reactive({
+  bindType: 'global',
+  nodeId: '',
+  formKey: '',
+  formVersion: 1,
+  isRequired: 1
+})
+
 // 加载流程定义列表
 const loadProcessDefinitions = async () => {
   loading.value = true
@@ -245,8 +318,10 @@ const loadProcessDefinitions = async () => {
       page: pagination.page,
       size: pagination.size
     })
-    tableData.value = response.list || []
-    pagination.total = response.total || 0
+    // 修复：后端返回的数据在response.data中
+    const data = response.data || response
+    tableData.value = data.list || []
+    pagination.total = data.total || 0
   } catch (error: any) {
     console.error('加载流程定义列表失败:', error)
     ElMessage.error(error.message || '加载失败')
@@ -414,6 +489,79 @@ const handleDelete = async (row: ProcessDefinition) => {
       ElMessage.error(error.message || '删除失败')
     }
   }
+}
+
+// 绑定表单
+const handleBindForm = async (row: ProcessDefinition) => {
+  currentProcessKey.value = row.key
+  bindFormData.bindType = 'global'
+  bindFormData.nodeId = ''
+  bindFormData.formKey = ''
+  bindFormData.formVersion = 1
+  bindFormData.isRequired = 1
+  
+  // 加载可用表单列表
+  try {
+    const res = await formApi.getList()
+    if (res.code === 200) {
+      availableForms.value = res.data || []
+    }
+  } catch (error) {
+    console.error('加载表单列表失败:', error)
+  }
+  
+  bindFormDialogVisible.value = true
+}
+
+// 确认绑定表单
+const handleBindFormConfirm = async () => {
+  if (!bindFormData.formKey) {
+    ElMessage.warning('请选择表单')
+    return
+  }
+  
+  if (bindFormData.bindType === 'node' && !bindFormData.nodeId) {
+    ElMessage.warning('请输入节点ID')
+    return
+  }
+  
+  bindingForm.value = true
+  try {
+    const data = {
+      processDefinitionKey: currentProcessKey.value,
+      nodeId: bindFormData.bindType === 'global' ? null : bindFormData.nodeId,
+      formKey: bindFormData.formKey,
+      formVersion: bindFormData.formVersion,
+      isRequired: bindFormData.isRequired
+    }
+    
+    const res = await processFormApi.bind(data)
+    if (res.code === 200) {
+      ElMessage.success('绑定成功')
+      bindFormDialogVisible.value = false
+    } else {
+      ElMessage.error(res.message || '绑定失败')
+    }
+  } catch (error: any) {
+    console.error('绑定表单失败:', error)
+    ElMessage.error(error.response?.data?.message || '绑定失败')
+  } finally {
+    bindingForm.value = false
+  }
+}
+
+// 关闭绑定表单对话框
+const handleBindFormDialogClose = () => {
+  bindFormData.bindType = 'global'
+  bindFormData.nodeId = ''
+  bindFormData.formKey = ''
+  bindFormData.formVersion = 1
+  bindFormData.isRequired = 1
+}
+
+// 从流程定义启动流程
+const handleStartFromDefinition = (row: ProcessDefinition) => {
+  router.push({ path: '/process/start', query: { id: row.id } })
 }
 
 // 分页变化

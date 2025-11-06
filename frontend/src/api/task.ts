@@ -67,28 +67,28 @@ export const taskApi = {
    * 查询任务列表
    */
   queryTasks(params: TaskQuery): Promise<{ data: PageResult<Task> }> {
-    return request.get('/task/list', { params })
+    return request.get('/tasks/list', { params })
   },
 
   /**
    * 查询单个任务
    */
   getTask(taskId: string): Promise<{ data: Task }> {
-    return request.get(`/task/${taskId}`)
+    return request.get(`/tasks/${taskId}`)
   },
 
   /**
    * 完成任务
    */
   completeTask(params: CompleteTaskParams): Promise<any> {
-    return request.post('/task/complete', params)
+    return request.post('/tasks/complete', params)
   },
 
   /**
    * 认领任务
    */
   claimTask(taskId: string, userId: string): Promise<any> {
-    return request.post(`/task/${taskId}/claim`, null, {
+    return request.post(`/tasks/${taskId}/claim`, null, {
       params: { userId }
     })
   },
@@ -97,7 +97,7 @@ export const taskApi = {
    * 委派任务
    */
   delegateTask(taskId: string, delegateUserId: string): Promise<any> {
-    return request.post(`/task/${taskId}/delegate`, null, {
+    return request.post(`/tasks/${taskId}/delegate`, null, {
       params: { delegateUserId }
     })
   },
@@ -106,7 +106,7 @@ export const taskApi = {
    * 转办任务
    */
   transferTask(taskId: string, targetUserId: string): Promise<any> {
-    return request.post(`/task/${taskId}/transfer`, null, {
+    return request.post(`/tasks/${taskId}/transfer`, null, {
       params: { targetUserId }
     })
   }

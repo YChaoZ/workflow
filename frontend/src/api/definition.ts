@@ -36,7 +36,7 @@ export interface ProcessDefinitionListResponse {
  */
 export function getProcessDefinitionList(params: ProcessDefinitionQuery) {
   return request<ProcessDefinitionListResponse>({
-    url: '/process/definitions',
+    url: '/process/definition/list',
     method: 'get',
     params
   })
@@ -120,5 +120,12 @@ export function getProcessDefinitionDetail(id: string) {
     url: `/process/definitions/${id}`,
     method: 'get'
   })
+}
+
+/**
+ * 根据ID获取流程定义（兼容旧API）
+ */
+export function getProcessDefinitionById(id: string) {
+  return getProcessDefinitionDetail(id)
 }
 

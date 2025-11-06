@@ -41,5 +41,44 @@ public interface UserGateway {
      * @param user 用户
      */
     void updateUser(User user);
+    
+    /**
+     * 为用户分配角色
+     *
+     * @param userId 用户ID
+     * @param roleIds 角色ID列表
+     */
+    void assignRoles(Long userId, java.util.List<Long> roleIds);
+    
+    /**
+     * 查询用户的角色ID列表
+     *
+     * @param userId 用户ID
+     * @return 角色ID列表
+     */
+    java.util.List<Long> listRoleIdsByUserId(Long userId);
+    
+    /**
+     * 查询所有用户
+     *
+     * @return 用户列表
+     */
+    java.util.List<User> listAllUsers();
+    
+    /**
+     * 统计使用该角色的用户数量
+     *
+     * @param roleId 角色ID
+     * @return 用户数量
+     */
+    long countUsersByRoleId(Long roleId);
+    
+    /**
+     * 统计该部门的用户数量
+     *
+     * @param deptId 部门ID
+     * @return 用户数量
+     */
+    long countUsersByDeptId(Long deptId);
 }
 

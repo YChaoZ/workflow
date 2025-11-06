@@ -1,7 +1,9 @@
 package com.bank.workflow.domain.user.entity;
 
 import lombok.Data;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 用户领域实体
@@ -58,6 +60,9 @@ public class User {
     
     /** 更新时间 */
     private Date updateTime;
+    
+    /** 角色ID列表 */
+    private List<Long> roleIds = new ArrayList<>();
     
     /**
      * 判断用户是否启用

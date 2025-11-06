@@ -50,6 +50,7 @@
       <template #header>
         <div class="card-header">
           <span>流程实例列表</span>
+          <el-button type="primary" :icon="Plus" @click="handleStartProcess">启动流程</el-button>
         </div>
       </template>
 
@@ -138,10 +139,13 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Refresh, View, VideoPause, VideoPlay, Delete } from '@element-plus/icons-vue'
+import { Search, Refresh, View, VideoPause, VideoPlay, Delete, Plus } from '@element-plus/icons-vue'
 import { processApi, ProcessInstance, ProcessInstanceQuery } from '@/api/process'
 import { formatDateTime } from '@/utils/date'
+
+const router = useRouter()
 
 // 查询表单
 const queryForm = reactive<ProcessInstanceQuery>({
@@ -238,6 +242,12 @@ const handleDelete = async (row: ProcessInstance) => {
       console.error('删除失败:', error)
     }
   }
+}
+
+// 启动流程
+const handleStartProcess = async () => {
+  // 跳转到流程定义列表让用户选择
+  router.push('/process/definition')
 }
 
 // 页面加载时查询数据

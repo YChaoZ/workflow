@@ -1,17 +1,23 @@
 package com.bank.workflow.infrastructure.gateway;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bank.workflow.domain.user.entity.User;
 import com.bank.workflow.domain.user.gateway.UserGateway;
+import com.bank.workflow.infrastructure.persistence.mapper.UserRoleMapper;
+import com.bank.workflow.infrastructure.persistence.po.UserRoleDO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * 用户网关实现（基于JDBC）
+ * 用户网关实现（基于JDBC + MyBatis-Plus）
  *
  * @author Workflow Team
  * @since 1.0.0
@@ -22,6 +28,7 @@ import java.util.List;
 public class UserGatewayImpl implements UserGateway {
     
     private final JdbcTemplate jdbcTemplate;
+    private final UserRoleMapper userRoleMapper;
     
     @Override
     public User findByUsername(String username) {
@@ -122,6 +129,107 @@ public class UserGatewayImpl implements UserGateway {
         } catch (Exception e) {
             log.error("更新用户失败: userId={}, error={}", user.getUserId(), e.getMessage(), e);
             throw new RuntimeException("更新用户失败: " + e.getMessage(), e);
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void assignRoles(Long userId, List<Long> roleIds) {
+        log.info("为用户分配角色: userId={}, roleIds={}", userId, roleIds);
+        
+        // 删除现有角色关联
+        LambdaQueryWrapper<UserRoleDO> deleteWrapper = new LambdaQueryWrapper<>();
+        deleteWrapper.eq(UserRoleDO::getUserId, userId);
+        userRoleMapper.delete(deleteWrapper);
+        
+        // 插入新的角色关联
+        if (roleIds != null && !roleIds.isEmpty()) {
+            Date now = new Date();
+            for (Long roleId : roleIds) {
+                UserRoleDO userRoleDO = new UserRoleDO();
+                userRoleDO.setUserId(userId);
+                userRoleDO.setRoleId(roleId);
+                userRoleDO.setCreateTime(now);
+                userRoleMapper.insert(userRoleDO);
+            }
+        }
+        
+        log.info("角色分配成功: userId={}, 分配{}个角色", userId, roleIds == null ? 0 : roleIds.size());
+    }
+    
+    @Override
+    public List<Long> listRoleIdsByUserId(Long userId) {
+        log.info("查询用户角色: userId={}", userId);
+        
+        LambdaQueryWrapper<UserRoleDO> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserRoleDO::getUserId, userId);
+        
+        List<UserRoleDO> list = userRoleMapper.selectList(wrapper);
+        
+        List<Long> roleIds = list.stream()
+                .map(UserRoleDO::getRoleId)
+                .collect(Collectors.toList());
+        
+        log.info("用户拥有{}个角色", roleIds.size());
+        return roleIds;
+    }
+    
+    @Override
+    public List<User> listAllUsers() {
+        log.info("查询所有用户");
+        
+        try {
+            String sql = "SELECT id, username, real_name, password, dept_id, " +
+                        "position, email, mobile, status, create_time, update_time FROM sys_user WHERE deleted = 0";
+            
+            List<User> users = jdbcTemplate.query(sql, new BeanPropertyRowMapper<>(User.class));
+            
+            // 查询每个用户的角色
+            for (User user : users) {
+                user.setRoleIds(listRoleIdsByUserId(user.getId()));
+            }
+            
+            log.info("查询到{}个用户", users.size());
+            return users;
+        } catch (Exception e) {
+            log.error("查询所有用户失败: error={}", e.getMessage(), e);
+            throw new RuntimeException("查询所有用户失败: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * 统计使用该角色的用户数量
+     */
+    @Override
+    public long countUsersByRoleId(Long roleId) {
+        log.info("统计使用角色的用户数量: roleId={}", roleId);
+        
+        try {
+            String sql = "SELECT COUNT(*) FROM sys_user_role WHERE role_id = ?";
+            Long count = jdbcTemplate.queryForObject(sql, Long.class, roleId);
+            log.info("角色{}被{}个用户使用", roleId, count);
+            return count != null ? count : 0;
+        } catch (Exception e) {
+            log.error("统计角色用户数量失败: roleId={}, error={}", roleId, e.getMessage(), e);
+            return 0;
+        }
+    }
+    
+    /**
+     * 统计该部门的用户数量
+     */
+    @Override
+    public long countUsersByDeptId(Long deptId) {
+        log.info("统计部门的用户数量: deptId={}", deptId);
+        
+        try {
+            String sql = "SELECT COUNT(*) FROM sys_user WHERE dept_id = ? AND deleted = 0";
+            Long count = jdbcTemplate.queryForObject(sql, Long.class, deptId);
+            log.info("部门{}有{}个用户", deptId, count);
+            return count != null ? count : 0;
+        } catch (Exception e) {
+            log.error("统计部门用户数量失败: deptId={}, error={}", deptId, e.getMessage(), e);
+            return 0;
         }
     }
 }

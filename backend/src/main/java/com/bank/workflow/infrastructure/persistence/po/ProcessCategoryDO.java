@@ -9,6 +9,7 @@ import java.util.Date;
 
 /**
  * 流程分类持久化对象
+ * 注意：字段名与V1表定义保持一致（category_name, category_code）
  *
  * @author Workflow Team
  * @since 1.0.0
@@ -26,12 +27,12 @@ public class ProcessCategoryDO {
     /**
      * 分类名称
      */
-    private String name;
+    private String categoryName;
     
     /**
      * 分类编码
      */
-    private String code;
+    private String categoryCode;
     
     /**
      * 父分类ID（0表示根节点）
@@ -44,18 +45,13 @@ public class ProcessCategoryDO {
     private Integer sortOrder;
     
     /**
-     * 描述
-     */
-    private String description;
-    
-    /**
      * 创建时间
      */
-    private Date createdTime;
+    private Date createTime;
     
     /**
      * 更新时间
      */
-    private Date updatedTime;
+    private Date updateTime;
 }
 

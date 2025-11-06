@@ -31,10 +31,9 @@ public class ProcessCategoryGatewayImpl implements ProcessCategoryGateway {
     public Long createCategory(ProcessCategory category) {
         log.info("创建流程分类: category={}", category);
         
-        ProcessCategoryDO categoryDO = new ProcessCategoryDO();
-        BeanUtils.copyProperties(category, categoryDO);
-        categoryDO.setCreatedTime(new Date());
-        categoryDO.setUpdatedTime(new Date());
+        ProcessCategoryDO categoryDO = convertToDO(category);
+        categoryDO.setCreateTime(new Date());
+        categoryDO.setUpdateTime(new Date());
         
         processCategoryMapper.insert(categoryDO);
         
@@ -46,9 +45,8 @@ public class ProcessCategoryGatewayImpl implements ProcessCategoryGateway {
     public void updateCategory(ProcessCategory category) {
         log.info("更新流程分类: category={}", category);
         
-        ProcessCategoryDO categoryDO = new ProcessCategoryDO();
-        BeanUtils.copyProperties(category, categoryDO);
-        categoryDO.setUpdatedTime(new Date());
+        ProcessCategoryDO categoryDO = convertToDO(category);
+        categoryDO.setUpdateTime(new Date());
         
         processCategoryMapper.updateById(categoryDO);
         
@@ -82,7 +80,7 @@ public class ProcessCategoryGatewayImpl implements ProcessCategoryGateway {
         log.info("根据编码查询流程分类: code={}", code);
         
         LambdaQueryWrapper<ProcessCategoryDO> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(ProcessCategoryDO::getCode, code);
+        wrapper.eq(ProcessCategoryDO::getCategoryCode, code);
         
         ProcessCategoryDO categoryDO = processCategoryMapper.selectOne(wrapper);
         if (categoryDO == null) {
@@ -146,8 +144,27 @@ public class ProcessCategoryGatewayImpl implements ProcessCategoryGateway {
      */
     private ProcessCategory convertToEntity(ProcessCategoryDO categoryDO) {
         ProcessCategory category = new ProcessCategory();
-        BeanUtils.copyProperties(categoryDO, category);
+        category.setId(categoryDO.getId());
+        category.setName(categoryDO.getCategoryName());
+        category.setCode(categoryDO.getCategoryCode());
+        category.setParentId(categoryDO.getParentId());
+        category.setSortOrder(categoryDO.getSortOrder());
+        category.setCreatedTime(categoryDO.getCreateTime());
+        category.setUpdatedTime(categoryDO.getUpdateTime());
         return category;
+    }
+    
+    /**
+     * 转换领域实体为DO
+     */
+    private ProcessCategoryDO convertToDO(ProcessCategory category) {
+        ProcessCategoryDO categoryDO = new ProcessCategoryDO();
+        categoryDO.setId(category.getId());
+        categoryDO.setCategoryName(category.getName());
+        categoryDO.setCategoryCode(category.getCode());
+        categoryDO.setParentId(category.getParentId());
+        categoryDO.setSortOrder(category.getSortOrder());
+        return categoryDO;
     }
 }
 
