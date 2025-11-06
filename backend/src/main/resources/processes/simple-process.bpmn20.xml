@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:flowable="http://flowable.org/bpmn"
+             typeLanguage="http://www.w3.org/2001/XMLSchema"
+             expressionLanguage="http://www.w3.org/1999/XPath"
+             targetNamespace="http://www.flowable.org/test">
+
+    <process id="simpleProcess" name="简单审批流程" isExecutable="true">
+        
+        <startEvent id="startEvent" name="开始"/>
+        
+        <sequenceFlow sourceRef="startEvent" targetRef="userTask1"/>
+        
+        <userTask id="userTask1" name="部门经理审批" flowable:assignee="${manager}">
+            <documentation>部门经理审批</documentation>
+        </userTask>
+        
+        <sequenceFlow sourceRef="userTask1" targetRef="userTask2"/>
+        
+        <userTask id="userTask2" name="总经理审批" flowable:assignee="${ceo}">
+            <documentation>总经理审批</documentation>
+        </userTask>
+        
+        <sequenceFlow sourceRef="userTask2" targetRef="endEvent"/>
+        
+        <endEvent id="endEvent" name="结束"/>
+        
+    </process>
+
+</definitions>
+

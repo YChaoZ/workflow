@@ -1,0 +1,17 @@
+# 开发环境配置
+server:
+  port: 9099
+
+spring:
+  datasource:
+    druid:
+      url: jdbc:mysql://localhost:3306/workflow?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      username: root
+      password: 1qaz2wsx
+
+logging:
+  level:
+    root: INFO
+    com.bank.workflow: DEBUG
+    org.flowable: DEBUG
+

@@ -1,0 +1,501 @@
+{
+  "info": {
+    "name": "工作流系统API测试",
+    "description": "Workflow System API Testing Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:9099",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "processInstanceId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "taskId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. 认证接口",
+      "item": [
+        {
+          "name": "登录",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// 保存 token",
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.code === 200 && jsonData.data.accessToken) {",
+                  "        pm.collectionVariables.set('token', jsonData.data.accessToken);",
+                  "        console.log('Token已保存:', jsonData.data.accessToken.substring(0, 50) + '...');",
+                  "    }",
+                  "}",
+                  "",
+                  "// 验证响应",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Login successful', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "    pm.expect(jsonData.data.accessToken).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "获取当前用户信息",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/current",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "current"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "登出",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. 流程管理",
+      "item": [
+        {
+          "name": "启动流程",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// 保存流程实例ID",
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.code === 200 && jsonData.data) {",
+                  "        pm.collectionVariables.set('processInstanceId', jsonData.data);",
+                  "        console.log('流程实例ID已保存:', jsonData.data);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"processKey\": \"simple-process\",\n  \"businessKey\": \"TEST001\",\n  \"startUser\": \"admin\",\n  \"title\": \"测试流程\",\n  \"variables\": {\n    \"applicant\": \"admin\",\n    \"reason\": \"测试启动流程\",\n    \"amount\": 1000\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/process/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "process", "start"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "查询流程实例列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/process/instances?pageNum=1&pageSize=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "process", "instances"],
+              "query": [
+                {
+                  "key": "pageNum",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                },
+                {
+                  "key": "startUser",
+                  "value": "admin",
+                  "disabled": true
+                },
+                {
+                  "key": "state",
+                  "value": "active",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "查询单个流程实例",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/process/instance/{{processInstanceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "process", "instance", "{{processInstanceId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "挂起流程实例",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/process/instance/{{processInstanceId}}/suspend",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "process", "instance", "{{processInstanceId}}", "suspend"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "激活流程实例",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/process/instance/{{processInstanceId}}/activate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "process", "instance", "{{processInstanceId}}", "activate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "删除流程实例",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/process/instance/{{processInstanceId}}?reason=测试删除",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "process", "instance", "{{processInstanceId}}"],
+              "query": [
+                {
+                  "key": "reason",
+                  "value": "测试删除"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. 任务管理",
+      "item": [
+        {
+          "name": "查询待办任务列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/task/list?taskStatus=todo&pageNum=1&pageSize=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "task", "list"],
+              "query": [
+                {
+                  "key": "taskStatus",
+                  "value": "todo"
+                },
+                {
+                  "key": "pageNum",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                },
+                {
+                  "key": "assignee",
+                  "value": "admin",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "查询已办任务列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/task/list?assignee=admin&taskStatus=done&pageNum=1&pageSize=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "task", "list"],
+              "query": [
+                {
+                  "key": "assignee",
+                  "value": "admin"
+                },
+                {
+                  "key": "taskStatus",
+                  "value": "done"
+                },
+                {
+                  "key": "pageNum",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "查询单个任务",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/task/{{taskId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "task", "{{taskId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "完成任务",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"taskId\": \"{{taskId}}\",\n  \"assignee\": \"admin\",\n  \"comment\": \"同意\",\n  \"variables\": {\n    \"approved\": true,\n    \"approveComment\": \"审批通过\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/task/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "task", "complete"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "认领任务",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/task/{{taskId}}/claim?userId=admin",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "task", "{{taskId}}", "claim"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "admin"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "委派任务",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/task/{{taskId}}/delegate?delegateUserId=zhangsan",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "task", "{{taskId}}", "delegate"],
+              "query": [
+                {
+                  "key": "delegateUserId",
+                  "value": "zhangsan"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "转办任务",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/task/{{taskId}}/transfer?targetUserId=lisi",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "task", "{{taskId}}", "transfer"],
+              "query": [
+                {
+                  "key": "targetUserId",
+                  "value": "lisi"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. 系统监控",
+      "item": [
+        {
+          "name": "健康检查",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/process/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "process", "health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
+

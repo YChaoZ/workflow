@@ -1,0 +1,19 @@
+# 生产环境配置
+server:
+  port: 9099
+
+spring:
+  datasource:
+    druid:
+      url: jdbc:mysql://your-prod-host:3306/workflow?useUnicode=true&characterEncoding=utf8&useSSL=true&serverTimezone=Asia/Shanghai
+      username: workflow_user
+      password: change-me-in-production
+
+logging:
+  level:
+    root: INFO
+    com.bank.workflow: INFO
+    org.flowable: WARN
+  file:
+    name: /var/log/workflow/workflow-system.log
+
