@@ -36,10 +36,10 @@ build/
 logs/
 *.log
 
-### Frontend ###
+### Node ###
 node_modules/
-dist/
 package-lock.json
+dist/
 
 ### Playwright ###
 .playwright-mcp/
