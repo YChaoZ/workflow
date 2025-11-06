@@ -80,5 +80,25 @@ public interface UserGateway {
      * @return 用户数量
      */
     long countUsersByDeptId(Long deptId);
+    
+    /**
+     * 删除用户
+     *
+     * @param userId 用户ID
+     */
+    void deleteUser(Long userId);
+    
+    /**
+     * 分页查询用户
+     *
+     * @param username 用户名（可选）
+     * @param realName 真实姓名（可选）
+     * @param departmentId 部门ID（可选）
+     * @param status 状态（可选）
+     * @param page 页码
+     * @param size 每页大小
+     * @return 分页结果
+     */
+    com.bank.workflow.app.dto.PageResult<User> pageUsers(String username, String realName, Long departmentId, Boolean status, Integer page, Integer size);
 }
 

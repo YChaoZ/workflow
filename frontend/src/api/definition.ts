@@ -96,7 +96,7 @@ export function activateProcessDefinition(id: string) {
  */
 export function getProcessDefinitionXml(id: string) {
   return request<{ xml: string }>({
-    url: `/process/definitions/${id}/xml`,
+    url: `/process/definition/${id}/xml`,
     method: 'get'
   })
 }
@@ -106,7 +106,7 @@ export function getProcessDefinitionXml(id: string) {
  */
 export function getProcessDefinitionImage(id: string) {
   return request<Blob>({
-    url: `/process/definitions/${id}/diagram`,
+    url: `/process/definition/${id}/diagram`,
     method: 'get',
     responseType: 'blob'
   })
@@ -117,7 +117,7 @@ export function getProcessDefinitionImage(id: string) {
  */
 export function getProcessDefinitionDetail(id: string) {
   return request<ProcessDefinition>({
-    url: `/process/definitions/${id}`,
+    url: `/process/definition/${id}`,
     method: 'get'
   })
 }

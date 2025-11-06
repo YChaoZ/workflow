@@ -1,7 +1,11 @@
 package com.bank.workflow.adapter.web;
 
+import com.bank.workflow.app.dto.PageResult;
 import com.bank.workflow.app.user.UserAppService;
 import com.bank.workflow.app.user.command.AssignRolesCmd;
+import com.bank.workflow.app.user.command.CreateUserCmd;
+import com.bank.workflow.app.user.command.UpdateUserCmd;
+import com.bank.workflow.app.user.query.UserPageQuery;
 import com.bank.workflow.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +52,31 @@ public class UserController {
     public Map<String, Object> listRolesByUserId(@PathVariable Long userId) {
         List<Long> roleIds = userAppService.listRoleIdsByUserId(userId);
         return Map.of("code", 200, "message", "查询成功", "data", roleIds);
+    }
+    
+    @PostMapping
+    public Map<String, Object> createUser(@Valid @RequestBody CreateUserCmd cmd) {
+        Long userId = userAppService.createUser(cmd);
+        return Map.of("code", 200, "message", "创建成功", "data", userId);
+    }
+    
+    @PutMapping("/{userId}")
+    public Map<String, Object> updateUser(@PathVariable Long userId, @Valid @RequestBody UpdateUserCmd cmd) {
+        cmd.setId(userId);
+        userAppService.updateUser(cmd);
+        return Map.of("code", 200, "message", "更新成功");
+    }
+    
+    @DeleteMapping("/{userId}")
+    public Map<String, Object> deleteUser(@PathVariable Long userId) {
+        userAppService.deleteUser(userId);
+        return Map.of("code", 200, "message", "删除成功");
+    }
+    
+    @GetMapping("/page")
+    public Map<String, Object> pageUsers(UserPageQuery query) {
+        PageResult<User> result = userAppService.pageUsers(query);
+        return Map.of("code", 200, "message", "查询成功", "data", result);
     }
 }
 

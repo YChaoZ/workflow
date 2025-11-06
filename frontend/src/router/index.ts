@@ -161,6 +161,15 @@ const routes: Array<RouteRecordRaw> = [
     },
     children: [
       {
+        path: 'user',
+        name: 'User',
+        component: () => import('@/views/organization/user/index.vue'),
+        meta: {
+          title: '用户管理',
+          icon: 'User'
+        }
+      },
+      {
         path: 'department',
         name: 'Department',
         component: () => import('@/views/organization/department/index.vue'),

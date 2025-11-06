@@ -53,5 +53,13 @@ public class PageResult<T> {
         result.calculateTotalPages();
         return result;
     }
+    
+    /**
+     * 简化的构造器（只需要total和list）
+     */
+    public PageResult(Long total, List<T> list) {
+        this.total = total;
+        this.list = list;
+    }
 }
 

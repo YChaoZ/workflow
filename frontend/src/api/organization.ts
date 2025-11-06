@@ -121,3 +121,11 @@ export const userApi = {
   getRoles: (userId: number) => request.get(`/users/${userId}/roles`)
 }
 
+// 统一导出（兼容性）
+export const organizationApi = {
+  getDepartmentTree: () => departmentApi.getTree(),
+  getDepartmentList: () => departmentApi.getList(),
+  getRoleList: () => roleApi.getList(),
+  getPermissionTree: () => permissionApi.getTree()
+}
+

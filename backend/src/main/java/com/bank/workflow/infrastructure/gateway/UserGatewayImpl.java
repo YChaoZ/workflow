@@ -84,7 +84,7 @@ public class UserGatewayImpl implements UserGateway {
         
         try {
             String sql = "INSERT INTO sys_user (username, real_name, password, dept_id, position, " +
-                        "email, mobile, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+                        "email, mobile, status, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
             
             jdbcTemplate.update(sql,
                 user.getUsername(),
@@ -230,6 +230,104 @@ public class UserGatewayImpl implements UserGateway {
         } catch (Exception e) {
             log.error("统计部门用户数量失败: deptId={}, error={}", deptId, e.getMessage(), e);
             return 0;
+        }
+    }
+    
+    /**
+     * 删除用户（逻辑删除）
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteUser(Long userId) {
+        log.info("删除用户: userId={}", userId);
+        
+        try {
+            // 逻辑删除用户
+            String sql = "UPDATE sys_user SET deleted = 1, status = 0 WHERE id = ?";
+            int rows = jdbcTemplate.update(sql, userId);
+            
+            if (rows > 0) {
+                // 删除用户角色关联
+                LambdaQueryWrapper<UserRoleDO> wrapper = new LambdaQueryWrapper<>();
+                wrapper.eq(UserRoleDO::getUserId, userId);
+                userRoleMapper.delete(wrapper);
+                
+                log.info("用户删除成功: userId={}", userId);
+            } else {
+                log.warn("用户不存在或已删除: userId={}", userId);
+            }
+        } catch (Exception e) {
+            log.error("删除用户失败: userId={}, error={}", userId, e.getMessage(), e);
+            throw new RuntimeException("删除用户失败: " + e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * 分页查询用户
+     */
+    @Override
+    public com.bank.workflow.app.dto.PageResult<User> pageUsers(String username, String realName, 
+                                                                  Long departmentId, Boolean status, 
+                                                                  Integer page, Integer size) {
+        log.info("分页查询用户: username={}, realName={}, departmentId={}, status={}, page={}, size={}", 
+                username, realName, departmentId, status, page, size);
+        
+        try {
+            // 构建查询条件
+            StringBuilder countSql = new StringBuilder("SELECT COUNT(*) FROM sys_user WHERE deleted = 0");
+            StringBuilder querySql = new StringBuilder("SELECT id, username, real_name, password, dept_id, position, email, mobile, status, create_time, update_time FROM sys_user WHERE deleted = 0");
+            List<Object> params = new java.util.ArrayList<>();
+            
+            if (username != null && !username.trim().isEmpty()) {
+                countSql.append(" AND username LIKE ?");
+                querySql.append(" AND username LIKE ?");
+                params.add("%" + username + "%");
+            }
+            
+            if (realName != null && !realName.trim().isEmpty()) {
+                countSql.append(" AND real_name LIKE ?");
+                querySql.append(" AND real_name LIKE ?");
+                params.add("%" + realName + "%");
+            }
+            
+            if (departmentId != null) {
+                countSql.append(" AND dept_id = ?");
+                querySql.append(" AND dept_id = ?");
+                params.add(departmentId);
+            }
+            
+            if (status != null) {
+                countSql.append(" AND status = ?");
+                querySql.append(" AND status = ?");
+                params.add(status ? 1 : 0);
+            }
+            
+            // 查询总数
+            Long total = jdbcTemplate.queryForObject(countSql.toString(), Long.class, params.toArray());
+            if (total == null) {
+                total = 0L;
+            }
+            
+            // 分页查询
+            querySql.append(" ORDER BY create_time DESC LIMIT ? OFFSET ?");
+            params.add(size);
+            params.add((page - 1) * size);
+            
+            List<User> users = jdbcTemplate.query(querySql.toString(),
+                    new BeanPropertyRowMapper<>(User.class),
+                    params.toArray());
+            
+            // 为每个用户加载角色ID列表
+            for (User user : users) {
+                user.setRoleIds(listRoleIdsByUserId(user.getId()));
+            }
+            
+            log.info("分页查询用户成功: total={}, page={}, size={}, 返回{}条记录", total, page, size, users.size());
+            
+            return new com.bank.workflow.app.dto.PageResult<User>(total, users);
+        } catch (Exception e) {
+            log.error("分页查询用户失败: error={}", e.getMessage(), e);
+            throw new RuntimeException("分页查询用户失败: " + e.getMessage(), e);
         }
     }
 }

@@ -92,17 +92,40 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { reactive, onMounted } from 'vue'
 import { Document, Clock, Check, Monitor, Edit } from '@element-plus/icons-vue'
+import { getHomeStatistics } from '@/api/home'
+import { ElMessage } from 'element-plus'
 
 const stats = reactive({
-  processCount: 8,
-  todoCount: 12,
-  doneCount: 45,
-  runningCount: 23
+  processCount: 0,
+  todoCount: 0,
+  doneCount: 0,
+  runningCount: 0
 })
 
-// TODO: 从后端获取真实数据
+// 加载统计数据
+const loadStatistics = async () => {
+  try {
+    const response = await getHomeStatistics()
+    if (response.code === 200 && response.data) {
+      stats.processCount = response.data.processCount || 0
+      stats.todoCount = response.data.todoCount || 0
+      stats.doneCount = response.data.doneCount || 0
+      stats.runningCount = response.data.runningCount || 0
+    } else {
+      ElMessage.warning('获取统计数据失败')
+    }
+  } catch (error) {
+    console.error('加载首页统计数据失败:', error)
+    ElMessage.error('加载统计数据失败，请稍后重试')
+  }
+}
+
+// 页面加载时获取数据
+onMounted(() => {
+  loadStatistics()
+})
 </script>
 
 <style scoped lang="scss">
