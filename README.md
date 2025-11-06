@@ -632,7 +632,7 @@ cp -r dist/* /usr/share/nginx/html/
 
 ## 💬 联系方式
 
-- 📧 Email: [your-email@example.com](mailto:your-email@example.com)
+- 📧 Email: [your-email@example.com](mailto:164992121@qq.com)
 - 🐛 Issues: [GitHub Issues](https://github.com/YChaoZ/workflow/issues)
 - 💬 Discussions: [GitHub Discussions](https://github.com/YChaoZ/workflow/discussions)
 
